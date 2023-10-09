@@ -1,7 +1,7 @@
 package com.sdworks.dispenser.services;
 
 import com.sdworks.dispenser.entity.Product;
-import com.sdworks.dispenser.exception.InsufficientFunds;
+import com.sdworks.dispenser.exception.InsufficientFundsException;
 import com.sdworks.dispenser.exception.NotFoundException;
 import com.sdworks.dispenser.model.DrinksModel;
 import com.sdworks.dispenser.model.ProductModel;
@@ -28,7 +28,7 @@ public class ProductsService {
 
         Double totalAmount = product.getProductPrice() * noOfUnits;
         if (coin < totalAmount) {
-            throw new InsufficientFunds("Insufficient funds");
+            throw new InsufficientFundsException("Insufficient funds");
         }
         product.setAvailableLimit(product.getMaxLimit() - noOfUnits);
         if (product.getAvailableLimit() == product.getMaxLimit()) {

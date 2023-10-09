@@ -1,7 +1,7 @@
 package com.sdworks.dispenser.services;
 
 import com.sdworks.dispenser.entity.Product;
-import com.sdworks.dispenser.exception.InsufficientFunds;
+import com.sdworks.dispenser.exception.InsufficientFundsException;
 import com.sdworks.dispenser.exception.NotFoundException;
 import com.sdworks.dispenser.model.DrinksModel;
 import com.sdworks.dispenser.model.ProductModel;
@@ -51,7 +51,7 @@ class ProductsServiceTest {
     void dispense_WhenInsufficientFunds_ThrowsInSufficientFundsException() {
         Product product = new Product("WH", "Water", 1d, 100, true);
         when(productRepository.findByDrinkCode(anyString())).thenReturn(Optional.of(product));
-        assertThrows(InsufficientFunds.class, () -> productsService.dispense("WH", 1d, 2));
+        assertThrows(InsufficientFundsException.class, () -> productsService.dispense("WH", 1d, 2));
     }
 
     @Test

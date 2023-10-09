@@ -1,6 +1,6 @@
 package com.sdworks.dispenser.services;
 
-import com.sdworks.dispenser.exception.InsufficientFunds;
+import com.sdworks.dispenser.exception.InsufficientFundsException;
 import com.sdworks.dispenser.exception.NotFoundException;
 import com.sdworks.dispenser.model.DrinksModel;
 import com.sdworks.dispenser.model.ProductModel;
@@ -58,8 +58,8 @@ public class DispenseServiceTest {
     @Test
     void dispenseDrink_WhenInsufficientFunds_ThrowsInSufficientFundsException() {
         when(productsService.dispense(anyString(), anyDouble(), anyInt()))
-                .thenThrow(new InsufficientFunds("Insufficient funds"));
-        assertThrows(InsufficientFunds.class,
+                .thenThrow(new InsufficientFundsException("Insufficient funds"));
+        assertThrows(InsufficientFundsException.class,
                 () -> dispenserService.dispenseDrink(false, "WH", 1d, 1));
     }
 
@@ -69,7 +69,7 @@ public class DispenseServiceTest {
         when(productsService.dispense(anyString(), anyDouble(), anyInt())).thenReturn(drinksModel);
 
         DrinksModel response = dispenserService.dispenseDrink(false, "WH", 1d, 1);
-        
+
         assertEquals(drinksModel.getRemainingAmount(), response.getRemainingAmount());
         assertEquals(drinksModel.getDrinkCode(), response.getDrinkCode());
         assertEquals(drinksModel.getDrinkName(), response.getDrinkName());
