@@ -1,4 +1,4 @@
-package com.sdworks.dispenser.exception;
+package com.sdworx.dispenser.exception;
 
 public class NotFoundException extends RuntimeException {
 
