@@ -9,7 +9,7 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductModel {
+public class DrinkModel {
 
     private String drinkCode;
     private String drinkName;

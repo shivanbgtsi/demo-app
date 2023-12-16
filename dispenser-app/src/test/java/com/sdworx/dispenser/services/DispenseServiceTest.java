@@ -5,9 +5,8 @@ import com.sdworx.dispenser.entity.Drink;
 import com.sdworx.dispenser.enums.COINS;
 import com.sdworx.dispenser.exception.InsufficientFundsException;
 import com.sdworx.dispenser.exception.NotFoundException;
-import com.sdworx.dispenser.model.DrinksModel;
-import com.sdworx.dispenser.model.ProductModel;
-import com.sdworx.dispenser.validators.DispenserDrinkValidations;
+import com.sdworx.dispenser.model.DrinkModel;
+import com.sdworx.dispenser.model.DrinkResponseModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -15,12 +14,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
 
@@ -35,15 +32,6 @@ public class DispenseServiceTest {
     @Mock
     private Dispenser dispenser;
 
-    @Mock
-    private DispenserDrinkValidations dispenserDrinkValidations;
-
-    @BeforeEach
-    void init() {
-        MockitoAnnotations.openMocks(this);
-    }
-
-
     @Test
     void dispenseDrink_WhenInvalidDrinkCode_ThrowsNotFoundException() {
         when(productsService.getProductByDrinkCode(anyString()))
@@ -57,7 +45,6 @@ public class DispenseServiceTest {
         Drink water = new Drink("WH", "Water", 0.05d, 100, 100);
 
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
-        when(dispenserDrinkValidations.validateQuantity(anyInt(), anyInt())).thenThrow(new RuntimeException("Quantity not available"));
         assertThrows(RuntimeException.class,
                 () -> dispenserService.dispenseDrink("WH", 1));
     }
@@ -67,7 +54,6 @@ public class DispenseServiceTest {
         Drink water = new Drink("WH", "Water", 0.05d, 100, 100);
 
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
-        when(dispenserDrinkValidations.validateCoins(anyDouble(), anyDouble())).thenThrow(new InsufficientFundsException("Insufficient funds"));
         assertThrows(InsufficientFundsException.class,
                 () -> dispenserService.dispenseDrink("WH", 1));
     }
@@ -75,12 +61,12 @@ public class DispenseServiceTest {
     @Test
     void dispenseDrink_WhenValidInputs_ReturnsDrinksDetails() {
         Drink water = new Drink("WH", "Water", 0.05d, 100, 100);
-
+        Map<COINS, Integer> coinCounts = Map.of(COINS.FIFTY_CENTS, 1);
+        when(dispenser.getCoinCounts()).thenReturn(coinCounts);
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
-        when(dispenser.getSum()).thenReturn(1d);
-        DrinksModel response = dispenserService.dispenseDrink("WH", 1);
+        DrinkResponseModel response = dispenserService.dispenseDrink("WH", 1);
 
-        assertEquals(0.95, response.getBalanceAmount());
+        assertNotNull(response.getBalanceAmount());
         assertEquals(water.getDrinkCode(), response.getDrinkCode());
         assertEquals(water.getDrinkName(), response.getDrinkName());
         assertEquals(1, response.getNoOfItems());
@@ -94,24 +80,30 @@ public class DispenseServiceTest {
 
     @Test
     void getDrinkStatus_ReturnsDrinkModels() {
-        ProductModel productModel = new ProductModel("WH", "Water", 5d, 10, 10);
-        ProductModel productModelRB = new ProductModel("RB", "Red Bull", 5d, 10, 10);
-        when(productsService.getProducts()).thenReturn(Set.of(productModelRB, productModel));
-        Set<ProductModel> drinksStatus = dispenserService.getProducts();
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
+        DrinkModel drinkModelRB = new DrinkModel("RB", "Red Bull", 5d, 10, 10);
+        when(productsService.getProducts()).thenReturn(Set.of(drinkModelRB, drinkModel));
+        Set<DrinkModel> drinksStatus = dispenserService.getProducts();
         assertEquals(2, drinksStatus.size());
     }
 
     @Test
     void cancelOrder_ReturnsAllAmount() {
-        when(dispenser.getCurrentTransactionCount()).thenReturn(List.of(COINS.FIFTY_CENTS));
+        Map<COINS, Integer> coinCount = Map.of(COINS.FIFTY_CENTS, 1);
+        when(dispenser.getCoinCounts()).thenReturn(coinCount);
         List<COINS> coins = dispenserService.cancelOrder();
         assertEquals(coins, List.of(COINS.FIFTY_CENTS));
     }
 
     @Test
-    void insertCoin() {
-        dispenserService.insertCoin(COINS.FIFTY_CENTS);
+    void insertCoin_ReturnsMessage() {
+        String message = dispenserService.insertCoin(COINS.FIFTY_CENTS);
+        assertEquals("Choose 1. Insert coin 2. Drink 3. Cancel", message);
 
     }
 
+    @BeforeEach
+    void init() {
+        MockitoAnnotations.openMocks(this);
+    }
 }

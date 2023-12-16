@@ -2,7 +2,7 @@ package com.sdworx.dispenser.services;
 
 import com.sdworx.dispenser.entity.Drink;
 import com.sdworx.dispenser.exception.NotFoundException;
-import com.sdworx.dispenser.model.ProductModel;
+import com.sdworx.dispenser.model.DrinkModel;
 import com.sdworx.dispenser.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,16 +52,16 @@ class ProductsServiceTest {
 
     @Test
     void saveProduct_ReturnsProduct() {
-        ProductModel productModel = new ProductModel("WH", "Water", 5d, 10, 10);
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
         Drink mockedProduct = new
-                Drink(productModel.getDrinkCode(), productModel.getDrinkName(), productModel.getProductPrice(), productModel.getMaxLimit(), productModel.getMaxLimit());
+                Drink(drinkModel.getDrinkCode(), drinkModel.getDrinkName(), drinkModel.getProductPrice(), drinkModel.getMaxLimit(), drinkModel.getMaxLimit());
         when(productRepository.saveProduct(any())).thenReturn(mockedProduct);
-        Drink product = productsService.saveProduct(productModel);
+        Drink product = productsService.saveProduct(drinkModel);
 
-        assertEquals(product.getPrice(), productModel.getProductPrice());
-        assertEquals(product.getAvailableQuantity(), productModel.getAvailableQuantity());
-        assertEquals(product.getDrinkCode(), productModel.getDrinkCode());
-        assertEquals(product.getDrinkName(), productModel.getDrinkName());
+        assertEquals(product.getPrice(), drinkModel.getProductPrice());
+        assertEquals(product.getAvailableQuantity(), drinkModel.getAvailableQuantity());
+        assertEquals(product.getDrinkCode(), drinkModel.getDrinkCode());
+        assertEquals(product.getDrinkName(), drinkModel.getDrinkName());
     }
 
     @Test
@@ -70,7 +70,7 @@ class ProductsServiceTest {
         Drink productRB = new Drink("RB", "Red Bull", 5d, 10, 10);
         Optional<Map<String, Drink>> mockedMap = Optional.of(Map.of("WH", product, "RB", productRB));
         when(productRepository.findAll()).thenReturn(mockedMap);
-        Set<ProductModel> drinksStatus = productsService.getProducts();
+        Set<DrinkModel> drinksStatus = productsService.getProducts();
         assertEquals(2, drinksStatus.size());
     }
 

@@ -1,47 +1,18 @@
 package com.sdworx.dispenser.entity;
 
 import com.sdworx.dispenser.enums.COINS;
+import lombok.Getter;
+import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
+@Setter
+@Getter
 public class Dispenser {
 
-    private List<COINS> currentTransaction;
-    private double sum;
     private double totalRevenue;
+    private Map<COINS, Integer> coinCounts = new HashMap<>();
 
-    public void insertCoin(COINS coin) {
-        if (currentTransaction == null) {
-            currentTransaction = new ArrayList<>();
-        }
-        this.setSum(coin);
-        currentTransaction.add(coin);
-    }
-
-    public List<COINS> getCurrentTransactionCount() {
-        return currentTransaction;
-    }
-
-    public void setCurrentTransaction() {
-        currentTransaction = null;
-        sum = 0;
-    }
-
-    public double getSum() {
-        return sum;
-    }
-
-    private void setSum(COINS coins) {
-        this.sum += coins.getValue();
-    }
-
-    public double getTotalRevenue() {
-        return totalRevenue;
-    }
-
-    public void setTotalRevenue(double totalRevenue) {
-        this.totalRevenue += totalRevenue;
-    }
 
 }
