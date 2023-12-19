@@ -1,6 +1,6 @@
 package com.sdworx.dispenser.enums;
 
-public enum COINS {
+public enum COIN {
     FIVE_CENTS(0.05d),
     TEN_CENTS(0.10d),
     TWENTY_CENTS(0.20d),
@@ -10,7 +10,7 @@ public enum COINS {
 
     private final double value;
 
-    COINS(double value) {
+    COIN(double value) {
         this.value = value;
     }
 

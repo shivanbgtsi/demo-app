@@ -16,6 +16,5 @@ public class DrinkModel {
     private Double productPrice;
     private int maxLimit;
     private int availableQuantity;
-
-
+    
 }

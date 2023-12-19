@@ -2,7 +2,7 @@ package com.sdworx.dispenser.services;
 
 import com.sdworx.dispenser.entity.Dispenser;
 import com.sdworx.dispenser.entity.Drink;
-import com.sdworx.dispenser.enums.COINS;
+import com.sdworx.dispenser.enums.COIN;
 import com.sdworx.dispenser.exception.InsufficientFundsException;
 import com.sdworx.dispenser.exception.NotFoundException;
 import com.sdworx.dispenser.model.DrinkModel;
@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.sdworx.dispenser.enums.COIN.FIFTY_CENTS;
+import static com.sdworx.dispenser.enums.COIN.TEN_CENTS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
@@ -61,7 +63,7 @@ public class DispenseServiceTest {
     @Test
     void dispenseDrink_WhenValidInputs_ReturnsDrinksDetails() {
         Drink water = new Drink("WH", "Water", 0.05d, 100, 100);
-        Map<COINS, Integer> coinCounts = Map.of(COINS.FIFTY_CENTS, 1);
+        Map<COIN, Integer> coinCounts = Map.of(FIFTY_CENTS, 1);
         when(dispenser.getCoinCounts()).thenReturn(coinCounts);
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
         DrinkResponseModel response = dispenserService.dispenseDrink("WH", 1);
@@ -89,15 +91,15 @@ public class DispenseServiceTest {
 
     @Test
     void cancelOrder_ReturnsAllAmount() {
-        Map<COINS, Integer> coinCount = Map.of(COINS.FIFTY_CENTS, 1);
+        Map<COIN, Integer> coinCount = Map.of(FIFTY_CENTS, 1, TEN_CENTS, 5);
         when(dispenser.getCoinCounts()).thenReturn(coinCount);
-        List<COINS> coins = dispenserService.cancelOrder();
-        assertEquals(coins, List.of(COINS.FIFTY_CENTS));
+        List<COIN> coins = dispenserService.cancelOrder();
+        assertEquals(6, coins.size());
     }
 
     @Test
     void insertCoin_ReturnsMessage() {
-        String message = dispenserService.insertCoin(COINS.FIFTY_CENTS);
+        String message = dispenserService.insertCoin(FIFTY_CENTS);
         assertEquals("Choose 1. Insert coin 2. Drink 3. Cancel", message);
 
     }

@@ -1,6 +1,6 @@
 package com.sdworx.dispenser.entity;
 
-import com.sdworx.dispenser.enums.COINS;
+import com.sdworx.dispenser.enums.COIN;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -12,7 +12,6 @@ import java.util.Map;
 public class Dispenser {
 
     private double totalRevenue;
-    private Map<COINS, Integer> coinCounts = new HashMap<>();
-
+    private Map<COIN, Integer> coinCounts = new HashMap<>();
 
 }

@@ -2,7 +2,7 @@ package com.sdworx.dispenser.services;
 
 import com.sdworx.dispenser.entity.Dispenser;
 import com.sdworx.dispenser.entity.Drink;
-import com.sdworx.dispenser.enums.COINS;
+import com.sdworx.dispenser.enums.COIN;
 import com.sdworx.dispenser.exception.InsufficientFundsException;
 import com.sdworx.dispenser.model.DrinkModel;
 import com.sdworx.dispenser.model.DrinkResponseModel;
@@ -13,58 +13,46 @@ import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static com.sdworx.dispenser.enums.COIN.*;
 
 @Service
 public class DispenserService {
 
     @Autowired
-    private final ProductsService productsService;
+    private ProductsService productsService;
     private Dispenser dispenser;
-
-    public DispenserService(ProductsService productsService) {
-        this.productsService = productsService;
-    }
-
 
     @PostConstruct
     public void initializeDispenser() {
         dispenser = new Dispenser();
     }
 
-    public String insertCoin(COINS coin) {
-        Map<COINS, Integer> coinCounts = dispenser.getCoinCounts();
+    public String insertCoin(COIN coin) {
+        Map<COIN, Integer> coinCounts = dispenser.getCoinCounts();
 
         if (coinCounts.containsKey(coin)) {
             coinCounts.put(coin, coinCounts.get(coin) + 1);
-        } else {
-            coinCounts.put(coin, 1);
         }
+        coinCounts.putIfAbsent(coin, 1);
         dispenser.setCoinCounts(coinCounts);
         return "Choose 1. Insert coin 2. Drink 3. Cancel";
     }
 
-    public List<COINS> cancelOrder() {
-        Map<COINS, Integer> coinCounts = dispenser.getCoinCounts();
-        List<COINS> coinsList = new ArrayList<>();
-//        coinCounts.keySet().stream().map(x ->
-//        {
-//            for (int j = 0; j < coinCounts.get(x); j++) {
-//                coinsList.add(x);
-//            }
-//            return coinsList;
-//        });
-        Set<COINS> coins1 = coinCounts.keySet();
-        for (COINS coin : coins1) {
-            for (int i = 0; i < coinCounts.get(coin); i++) {
-                coinsList.add(coin);
-            }
-        }
+    public List<COIN> cancelOrder() {
+        Map<COIN, Integer> coinCounts = dispenser.getCoinCounts();
+        List<COIN> refundCoins = coinCounts.entrySet().stream().flatMap(entry ->
+                Stream.iterate(entry.getKey(), s -> s)
+                        .limit(entry.getValue())
+        ).collect(Collectors.toList());
+
         dispenser.setCoinCounts(new HashMap<>());
-        return coinsList;
+        return refundCoins;
     }
 
     public DrinkResponseModel dispenseDrink(String drinkCode, int noOfUnits) {
-        Map<COINS, Integer> coinCounts = dispenser.getCoinCounts();
+        Map<COIN, Integer> coinCounts = dispenser.getCoinCounts();
         double sum = getCurrentTransactionAmount(coinCounts);
         Drink drink = productsService.getProductByDrinkCode(drinkCode);
 
@@ -85,17 +73,20 @@ public class DispenserService {
         return productsService.getProducts();
     }
 
-    private List<COINS> getBalanceCoins(Double balanceAmount) {
+    private List<COIN> getBalanceCoins(Double balanceAmount) {
         if (balanceAmount == 0) {
             return List.of();
         }
-        List<Double> coinsList = Arrays.stream(COINS.values()).map(COINS::getValue)
-                .sorted((o1, o2) -> Double.compare(o2, o1)).collect(Collectors.toList());
+        List<Double> coinsList = Arrays.stream(COIN.values())
+                .map(COIN::getValue)
+                .sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList());
 
         if (coinsList.contains(balanceAmount)) {
             return List.of(getCoins(balanceAmount));
         }
-        List<COINS> lists = new ArrayList<>();
+
+        List<COIN> lists = new ArrayList<>();
         int i = 0;
         for (; i < coinsList.size(); i++) {
 
@@ -106,41 +97,40 @@ public class DispenserService {
                     break;
                 }
                 lists.add(getCoins(coinsList.get(i)));
-                balanceAmount = sub(balanceAmount, coinsList.get(i));
+                balanceAmount = subtract(balanceAmount, coinsList.get(i));
             }
             i--;
         }
         return lists;
     }
 
-    private double sub(double minuend, double subtrahend) {
+    private double subtract(double minuend, double subtrahend) {
         BigDecimal b1 = new BigDecimal(Double.toString(minuend));
         BigDecimal b2 = new BigDecimal(Double.toString(subtrahend));
         return b1.subtract(b2).doubleValue();
-
     }
 
-    private COINS getCoins(Double coin) {
-        COINS coins = null;
+    private COIN getCoins(Double coin) {
+        COIN COIN = null;
         if (coin == 0.05d) {
-            coins = COINS.FIVE_CENTS;
+            COIN = FIVE_CENTS;
         } else if (coin == 0.10d) {
-            coins = COINS.TEN_CENTS;
+            COIN = TEN_CENTS;
         } else if (coin == 0.20d) {
-            coins = COINS.TWENTY_CENTS;
+            COIN = TWENTY_CENTS;
         } else if (coin == 0.50d) {
-            coins = COINS.FIFTY_CENTS;
+            COIN = FIFTY_CENTS;
         } else if (coin == 1d) {
-            coins = COINS.ONE_DOLLAR;
+            COIN = ONE_DOLLAR;
         } else if (coin == 2d) {
-            coins = COINS.TWO_DOLLAR;
+            COIN = TWO_DOLLAR;
         }
-        return coins;
+        return COIN;
 
 
     }
 
-    private double getCurrentTransactionAmount(Map<COINS, Integer> coinCounts) {
+    private double getCurrentTransactionAmount(Map<COIN, Integer> coinCounts) {
 
         return coinCounts.keySet().stream().mapToDouble(coin -> (coin.getValue() * coinCounts.get(coin))).sum();
     }

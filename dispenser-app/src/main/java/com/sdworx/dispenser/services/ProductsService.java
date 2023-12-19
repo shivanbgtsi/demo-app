@@ -21,7 +21,6 @@ public class ProductsService {
     public Drink getProductByDrinkCode(String drinkCode) {
         return productRepository.findByDrinkCode(drinkCode)
                 .orElseThrow(() -> new NotFoundException("Drink code not found"));
-
     }
 
     public Drink saveProduct(DrinkModel drinkModel) {

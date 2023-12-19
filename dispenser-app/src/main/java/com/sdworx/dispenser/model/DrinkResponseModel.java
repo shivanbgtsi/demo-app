@@ -1,6 +1,6 @@
 package com.sdworx.dispenser.model;
 
-import com.sdworx.dispenser.enums.COINS;
+import com.sdworx.dispenser.enums.COIN;
 import lombok.*;
 
 import java.util.List;
@@ -15,6 +15,6 @@ public class DrinkResponseModel {
     private String drinkCode;
     private String drinkName;
     private int noOfItems;
-    private List<COINS> balanceAmount;
+    private List<COIN> balanceAmount;
 
 }
