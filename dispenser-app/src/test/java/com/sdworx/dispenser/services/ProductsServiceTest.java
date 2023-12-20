@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 class ProductsServiceTest {
 
@@ -33,14 +33,14 @@ class ProductsServiceTest {
     }
 
     @Test
-    void dispense_WhenInvalidDrinkCode_ThrowsNotFoundException() {
+    void getProductByDrinkCode_WhenInvalidDrinkCode_ThrowsNotFoundException() {
         when(productRepository.findByDrinkCode(anyString())).thenReturn(Optional.empty());
         assertThrows(NotFoundException.class,
                 () -> productsService.getProductByDrinkCode("TEST"));
     }
 
     @Test
-    void dispense_WhenValidInputs_ReturnsDrinksDetails() {
+    void getProductByDrinkCode_WhenValidInputs_ReturnsDrinksDetails() {
         Drink product = new Drink("WH", "Water", 0.5d, 100, 100);
         when(productRepository.findByDrinkCode(anyString())).thenReturn(Optional.of(product));
         Drink response = productsService.getProductByDrinkCode("WH");
@@ -51,11 +51,32 @@ class ProductsServiceTest {
     }
 
     @Test
+    void saveProduct_WhenDrinkExists_ThrowsRTE() {
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
+        Drink mockedProduct = new
+                Drink(drinkModel.getDrinkCode(), drinkModel.getDrinkName(), drinkModel.getProductPrice(), drinkModel.getMaxLimit(), drinkModel.getMaxLimit());
+        when(productRepository.findByDrinkCode(any())).thenReturn(Optional.of(mockedProduct));
+        assertThrows(RuntimeException.class, () -> {
+            productsService.saveProduct(drinkModel);
+        });
+    }
+
+    @Test
+    void saveProduct_WhenAvailableQuantityIsMoreThanMaxQuantity_ThrowsRTE() {
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 25);
+
+        when(productRepository.findByDrinkCode(any())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> {
+            productsService.saveProduct(drinkModel);
+        });
+    }
+
+    @Test
     void saveProduct_ReturnsProduct() {
         DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
         Drink mockedProduct = new
                 Drink(drinkModel.getDrinkCode(), drinkModel.getDrinkName(), drinkModel.getProductPrice(), drinkModel.getMaxLimit(), drinkModel.getMaxLimit());
-        when(productRepository.saveProduct(any())).thenReturn(mockedProduct);
+        when(productRepository.save(any())).thenReturn(mockedProduct);
         Drink product = productsService.saveProduct(drinkModel);
 
         assertEquals(product.getPrice(), drinkModel.getProductPrice());
@@ -72,6 +93,41 @@ class ProductsServiceTest {
         when(productRepository.findAll()).thenReturn(mockedMap);
         Set<DrinkModel> drinksStatus = productsService.getProducts();
         assertEquals(2, drinksStatus.size());
+    }
+
+
+    @Test
+    void update_WhenDrinkNotExists_ThrowsRTE() {
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
+
+        when(productRepository.findByDrinkCode(any())).thenReturn(Optional.empty());
+        assertThrows(RuntimeException.class, () -> {
+            productsService.updateProduct(drinkModel);
+        });
+    }
+
+    @Test
+    void update_WhenAvailableQuantityIsMoreThanMaxQuantity_ThrowsRTE() {
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 25);
+
+        Drink mockedProduct = new
+                Drink(drinkModel.getDrinkCode(), drinkModel.getDrinkName(), drinkModel.getProductPrice(), drinkModel.getMaxLimit(), drinkModel.getMaxLimit());
+        when(productRepository.findByDrinkCode(any())).thenReturn(Optional.of(mockedProduct));
+        assertThrows(RuntimeException.class, () -> {
+            productsService.saveProduct(drinkModel);
+        });
+    }
+
+    @Test
+    void update_ReturnsProduct() {
+        DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
+        Drink mockedProduct = new
+                Drink(drinkModel.getDrinkCode(), drinkModel.getDrinkName(), drinkModel.getProductPrice(), drinkModel.getMaxLimit(), drinkModel.getMaxLimit());
+        when(productRepository.findByDrinkCode(any())).thenReturn(Optional.of(mockedProduct));
+        doNothing().when(productRepository).update(any());
+
+        productsService.updateProduct(drinkModel);
+        verify(productRepository, times(1)).update(any());
     }
 
 }

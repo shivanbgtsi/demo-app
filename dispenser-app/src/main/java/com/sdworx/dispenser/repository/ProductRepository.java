@@ -1,43 +1,61 @@
 package com.sdworx.dispenser.repository;
 
 import com.sdworx.dispenser.entity.Drink;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
 @Repository
+@AllArgsConstructor
 public class ProductRepository {
 
     private static final Map<String, Drink> products = new HashMap<>();
 
-    static {
-        Drink coca = new Drink("CO", "Coca", 1d, 100, 100);
-        Drink redBull = new Drink("RB", "Red Bull", 1.25d, 50, 100);
-        Drink water = new Drink("WH", "Water", 0.05d, 100, 100);
-        Drink orangeJuice = new Drink("OJ", "Orange Juice", 1.95d, 60, 100);
-        products.put("CO", coca);
-        products.put("RB", redBull);
-        products.put("WH", water);
-        products.put("OJ", orangeJuice);
+    private DrinkStore drinkStore;
+
+    @PostConstruct
+    public void init() {
+        products.putAll(drinkStore.getDrinkElementsFromFile());
     }
 
     public Optional<Drink> findByDrinkCode(String drinkCode) {
         return Optional.ofNullable(products.get(drinkCode));
     }
 
-    public void updateProduct(Drink drink) {
-        products.put(drink.getDrinkCode(), drink);
+    public void update(Drink drink) {
+        try {
+            products.putAll(drinkStore.updateDrinkElementsToFile(drink));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
-    public Drink saveProduct(Drink drink) {
-        products.put(drink.getDrinkCode(), drink);
+    public Drink save(Drink drink) {
+        try {
+            drink = drinkStore.saveDrinkElementsToFile(drink);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return drink;
     }
 
     public Optional<Map<String, Drink>> findAll() {
         return Optional.of(products);
+    }
+
+    public void delete(String drinkCode) {
+        try {
+            drinkStore.deleteDrinkElementsFromFile(drinkCode);
+            products.remove(drinkCode);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }

@@ -2,57 +2,29 @@ package com.sdworx.dispenser.services;
 
 import com.sdworx.dispenser.entity.Dispenser;
 import com.sdworx.dispenser.entity.Drink;
-import com.sdworx.dispenser.enums.COIN;
+import com.sdworx.dispenser.enums.Coin;
 import com.sdworx.dispenser.exception.InsufficientFundsException;
 import com.sdworx.dispenser.model.DrinkModel;
 import com.sdworx.dispenser.model.DrinkResponseModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import static com.sdworx.dispenser.enums.COIN.*;
+import static com.sdworx.dispenser.enums.Coin.*;
 
 @Service
-public class DispenserService {
+@AllArgsConstructor
+public class DrinkDispenserService implements ItemDispenser {
 
-    @Autowired
     private ProductsService productsService;
+
     private Dispenser dispenser;
 
-    @PostConstruct
-    public void initializeDispenser() {
-        dispenser = new Dispenser();
-    }
-
-    public String insertCoin(COIN coin) {
-        Map<COIN, Integer> coinCounts = dispenser.getCoinCounts();
-
-        if (coinCounts.containsKey(coin)) {
-            coinCounts.put(coin, coinCounts.get(coin) + 1);
-        }
-        coinCounts.putIfAbsent(coin, 1);
-        dispenser.setCoinCounts(coinCounts);
-        return "Choose 1. Insert coin 2. Drink 3. Cancel";
-    }
-
-    public List<COIN> cancelOrder() {
-        Map<COIN, Integer> coinCounts = dispenser.getCoinCounts();
-        List<COIN> refundCoins = coinCounts.entrySet().stream().flatMap(entry ->
-                Stream.iterate(entry.getKey(), s -> s)
-                        .limit(entry.getValue())
-        ).collect(Collectors.toList());
-
-        dispenser.setCoinCounts(new HashMap<>());
-        return refundCoins;
-    }
-
-    public DrinkResponseModel dispenseDrink(String drinkCode, int noOfUnits) {
-        Map<COIN, Integer> coinCounts = dispenser.getCoinCounts();
+    public DrinkResponseModel dispense(String drinkCode, int noOfUnits) {
+        Map<Coin, Integer> coinCounts = dispenser.getCoinCounts();
         double sum = getCurrentTransactionAmount(coinCounts);
         Drink drink = productsService.getProductByDrinkCode(drinkCode);
 
@@ -60,25 +32,27 @@ public class DispenserService {
         double totalAmount = drink.getPrice() * noOfUnits;
         validateCoins(sum, totalAmount);
         drink.setAvailableQuantity(drink.getMaxLimit() - noOfUnits);
-
-        productsService.updateProduct(drink);
+        DrinkModel drinkModel = new DrinkModel(drink.getDrinkCode(), drink.getDrinkName(),
+                drink.getPrice(), drink.getMaxLimit(), drink.getAvailableQuantity());
+        productsService.updateProduct(drinkModel);
 
         dispenser.setTotalRevenue(dispenser.getTotalRevenue() + totalAmount);
         dispenser.setCoinCounts(new HashMap<>());
 
-        return new DrinkResponseModel(drinkCode, drink.getDrinkName(), noOfUnits, getBalanceCoins(sum - totalAmount));
+        return new DrinkResponseModel(drinkCode, drink.getDrinkName(), noOfUnits,
+                getBalanceCoins(sum - totalAmount));
     }
 
     public Set<DrinkModel> getProducts() {
         return productsService.getProducts();
     }
 
-    private List<COIN> getBalanceCoins(Double balanceAmount) {
+    private List<Coin> getBalanceCoins(Double balanceAmount) {
         if (balanceAmount == 0) {
             return List.of();
         }
-        List<Double> coinsList = Arrays.stream(COIN.values())
-                .map(COIN::getValue)
+        List<Double> coinsList = Arrays.stream(Coin.values())
+                .map(Coin::getValue)
                 .sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList());
 
@@ -86,7 +60,7 @@ public class DispenserService {
             return List.of(getCoins(balanceAmount));
         }
 
-        List<COIN> lists = new ArrayList<>();
+        List<Coin> lists = new ArrayList<>();
         int i = 0;
         for (; i < coinsList.size(); i++) {
 
@@ -110,8 +84,8 @@ public class DispenserService {
         return b1.subtract(b2).doubleValue();
     }
 
-    private COIN getCoins(Double coin) {
-        COIN COIN = null;
+    private Coin getCoins(Double coin) {
+        Coin COIN = null;
         if (coin == 0.05d) {
             COIN = FIVE_CENTS;
         } else if (coin == 0.10d) {
@@ -130,7 +104,7 @@ public class DispenserService {
 
     }
 
-    private double getCurrentTransactionAmount(Map<COIN, Integer> coinCounts) {
+    private double getCurrentTransactionAmount(Map<Coin, Integer> coinCounts) {
 
         return coinCounts.keySet().stream().mapToDouble(coin -> (coin.getValue() * coinCounts.get(coin))).sum();
     }

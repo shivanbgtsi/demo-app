@@ -1,0 +1,30 @@
+{
+  "CO": {
+    "drinkCode": "CO",
+    "drinkName": "Coca",
+    "price": 1.0,
+    "maxLimit": 100,
+    "availableQuantity": 100
+  },
+  "RB": {
+    "drinkCode": "RB",
+    "drinkName": "Red Bull",
+    "price": 1.25,
+    "maxLimit": 100,
+    "availableQuantity": 100
+  },
+  "WH": {
+    "drinkCode": "WH",
+    "drinkName": "Water",
+    "price": 0.05,
+    "maxLimit": 100,
+    "availableQuantity": 100
+  },
+  "OJ": {
+    "drinkCode": "OJ",
+    "drinkName": "Orange Juice",
+    "price": 1.95,
+    "maxLimit": 100,
+    "availableQuantity": 100
+  }
+}

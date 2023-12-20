@@ -2,7 +2,7 @@ package com.sdworx.dispenser.services;
 
 import com.sdworx.dispenser.entity.Dispenser;
 import com.sdworx.dispenser.entity.Drink;
-import com.sdworx.dispenser.enums.COIN;
+import com.sdworx.dispenser.enums.Coin;
 import com.sdworx.dispenser.exception.InsufficientFundsException;
 import com.sdworx.dispenser.exception.NotFoundException;
 import com.sdworx.dispenser.model.DrinkModel;
@@ -13,12 +13,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.sdworx.dispenser.enums.COIN.FIFTY_CENTS;
-import static com.sdworx.dispenser.enums.COIN.TEN_CENTS;
+import static com.sdworx.dispenser.enums.Coin.FIFTY_CENTS;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.when;
@@ -26,7 +24,7 @@ import static org.mockito.Mockito.when;
 public class DispenseServiceTest {
 
     @InjectMocks
-    private DispenserService dispenserService;
+    private DrinkDispenserService drinkDispenserService;
 
     @Mock
     private ProductsService productsService;
@@ -39,7 +37,7 @@ public class DispenseServiceTest {
         when(productsService.getProductByDrinkCode(anyString()))
                 .thenThrow(new NotFoundException("Drink code not found"));
         assertThrows(NotFoundException.class,
-                () -> dispenserService.dispenseDrink("TEST", 1));
+                () -> drinkDispenserService.dispense("TEST", 1));
     }
 
     @Test
@@ -48,7 +46,7 @@ public class DispenseServiceTest {
 
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
         assertThrows(RuntimeException.class,
-                () -> dispenserService.dispenseDrink("WH", 1));
+                () -> drinkDispenserService.dispense("WH", 1));
     }
 
     @Test
@@ -57,16 +55,16 @@ public class DispenseServiceTest {
 
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
         assertThrows(InsufficientFundsException.class,
-                () -> dispenserService.dispenseDrink("WH", 1));
+                () -> drinkDispenserService.dispense("WH", 1));
     }
 
     @Test
     void dispenseDrink_WhenValidInputs_ReturnsDrinksDetails() {
         Drink water = new Drink("WH", "Water", 0.05d, 100, 100);
-        Map<COIN, Integer> coinCounts = Map.of(FIFTY_CENTS, 1);
+        Map<Coin, Integer> coinCounts = Map.of(FIFTY_CENTS, 1);
         when(dispenser.getCoinCounts()).thenReturn(coinCounts);
         when(productsService.getProductByDrinkCode(anyString())).thenReturn(water);
-        DrinkResponseModel response = dispenserService.dispenseDrink("WH", 1);
+        DrinkResponseModel response = drinkDispenserService.dispense("WH", 1);
 
         assertNotNull(response.getBalanceAmount());
         assertEquals(water.getDrinkCode(), response.getDrinkCode());
@@ -77,7 +75,7 @@ public class DispenseServiceTest {
     @Test
     void getDrinksStatus_ThrowsNotFoundException() {
         when(productsService.getProducts()).thenThrow(new NotFoundException("Product Not available"));
-        assertThrows(NotFoundException.class, () -> dispenserService.getProducts());
+        assertThrows(NotFoundException.class, () -> drinkDispenserService.getProducts());
     }
 
     @Test
@@ -85,24 +83,25 @@ public class DispenseServiceTest {
         DrinkModel drinkModel = new DrinkModel("WH", "Water", 5d, 10, 10);
         DrinkModel drinkModelRB = new DrinkModel("RB", "Red Bull", 5d, 10, 10);
         when(productsService.getProducts()).thenReturn(Set.of(drinkModelRB, drinkModel));
-        Set<DrinkModel> drinksStatus = dispenserService.getProducts();
+        Set<DrinkModel> drinksStatus = drinkDispenserService.getProducts();
         assertEquals(2, drinksStatus.size());
     }
 
-    @Test
-    void cancelOrder_ReturnsAllAmount() {
-        Map<COIN, Integer> coinCount = Map.of(FIFTY_CENTS, 1, TEN_CENTS, 5);
-        when(dispenser.getCoinCounts()).thenReturn(coinCount);
-        List<COIN> coins = dispenserService.cancelOrder();
-        assertEquals(6, coins.size());
-    }
-
-    @Test
-    void insertCoin_ReturnsMessage() {
-        String message = dispenserService.insertCoin(FIFTY_CENTS);
-        assertEquals("Choose 1. Insert coin 2. Drink 3. Cancel", message);
-
-    }
+//    @Test
+//    void test() throws IOException {
+//        ObjectMapper mapper = new ObjectMapper();
+//        Map<String, Drink> stringDrinkMap = mapper.readValue(new File("src/main/resources/drink-resource.json"), new TypeReference<Map<String, Drink>>() {
+//        });
+//        System.out.println(stringDrinkMap);
+////        Drink drink = stringDrinkMap.get("WH");
+////        drink.setAvailableQuantity(60);
+////        stringDrinkMap.put("WH", drink);
+//
+//        Drink drink = new Drink("TE", "TEST", 0.5d, 100, 100);
+//        stringDrinkMap.put(drink.getDrinkCode(), drink);
+//        mapper.writeValue(new File("src/main/resources/drink-resource.json"), stringDrinkMap);
+////        mapper.writeValueAsString(new File("config.json"),stringDrinkMap);
+//    }
 
     @BeforeEach
     void init() {
