@@ -1,6 +1,10 @@
 name: Manual Workflow with Inputs
 
+
 on:
+  push:
+    branches:
+      - '**'
   workflow_dispatch:
     inputs:
       environment:
