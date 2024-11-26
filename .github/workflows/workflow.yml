@@ -35,4 +35,4 @@ jobs:
 
       - name: test
         run: |
-          echo "Deploying to environment: ${{ github.event.inputs.environment }
+          echo "Deploying to environment: ${{ github.event.inputs.environment }}
