@@ -1,4 +1,5 @@
-name: Manual Workflow with Inputs
+
+name: Manual Workflow with Inputs from Master
 
 on:
   push:
