@@ -1,6 +1,5 @@
 name: Manual Workflow with Inputs
 
-
 on:
   push:
     branches:
@@ -33,6 +32,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: test
+      - name: Deploy with inputs
         run: |
-          echo "Deploying to environment: ${{ github.event.inputs.environment }}
+          echo "Deploying to environment: ${{ github.event.inputs.environment }}"
+          echo "Version: ${{ github.event.inputs.version }}"
+          echo "Deploy to production: ${{ github.event.inputs.deploy }}"
