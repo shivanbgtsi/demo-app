@@ -1,5 +1,4 @@
-
-name: Manual Workflow with Inputs from Master
+name: Testing of gha
 
 on:
   push:
