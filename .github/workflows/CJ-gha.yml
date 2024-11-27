@@ -3,7 +3,7 @@ name: Print Message Workflow
 on:
   push:
     branches:
-      - CJ-gha.yml
+      - CJ/GHA-test
   workflow_dispatch: # Enables manual trigger
     inputs:
       message: 
