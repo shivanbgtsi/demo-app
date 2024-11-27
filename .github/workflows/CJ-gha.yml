@@ -1,0 +1,17 @@
+name: Print Message Workflow
+
+on:
+  workflow_dispatch: # Enables manual trigger
+    inputs:
+      message: 
+        description: "Enter the message to print" 
+        required: true 
+        default: "Hello, World!" # Default value
+
+jobs:
+  print-message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Input Message
+        run: echo "${{ inputs.message }}"
+
